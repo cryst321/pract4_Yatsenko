@@ -18,20 +18,30 @@ public class Tester {
 
         dictionary.writeDictionary();
 
-        System.out.println("-------------------------");
+        //System.out.println("-----------Permutation index-------------");
+        dictionary.printInvertedIndexToFile("permutations.txt");
 
 
         Scanner scanner = new Scanner(System.in);
+        PermutationSearch permutationSearch = new PermutationSearch(dictionary.permutationIndex);
+
       SingleJokerSearch singleJokerSearch = new SingleJokerSearch(dictionary.normalTree,dictionary.reverseTree);
 
         while (true) {
-            System.out.println("Searching options: 1 - single joker");
+            System.out.println("Searching options: 1) - single joker (trees), 2) - 1 or 2 jokers (permutation index)");
             String answer = scanner.nextLine();
             if (answer.equals("1")) {
                 System.out.println("Enter your query: ");
                 String query = scanner.nextLine();
                 Set<Integer> result = singleJokerSearch.search(query);
                 System.out.println("Result of query " + query + ": " + result);
+
+            }
+            else if (answer.equals("2")) {
+                System.out.println("Enter your query: ");
+                String query = scanner.nextLine();
+                Set<Integer> result = permutationSearch.search(query);
+                System.out.println("Result of query '" + query + "': " + result);
 
             }
 

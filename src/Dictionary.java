@@ -8,13 +8,20 @@ public class Dictionary {
     private final String size;
     public int numFiles;
 
-    /**1. нормальний інверт. індекс**/
+    /**
+     * 1. нормальний інверт. індекс
+     **/
     public LetterTree normalTree;
-    /**1. обернений інверт. індекс**/
+    /**
+     * 1. обернений інверт. індекс
+     **/
     public LetterTree reverseTree;
 
 
-    /**2. перестановочний індекс**/
+    /**
+     * 2. перестановочний індекс
+     **/
+    public TreeMap<String, Set<Integer>> permutationIndex;
 
 
     public Dictionary(String directoryPath) {
@@ -26,6 +33,8 @@ public class Dictionary {
         /**1. обернений інверт. індекс**/
         reverseTree = new LetterTree();
 
+        permutationIndex = new TreeMap<>();
+
 
         numFiles = countTxtFiles(directoryPath);
         size = createDictionary(directoryPath);
@@ -34,6 +43,7 @@ public class Dictionary {
 
     /**
      * створюємо словник
+     *
      * @param directoryPath шлях до "бібліотеки" тхт файлів
      * @return розмір словника
      */
@@ -68,7 +78,8 @@ public class Dictionary {
      */
     /**
      * аналізуємо файл
-     * @param file файл
+     *
+     * @param file      файл
      * @param fileIndex індекс файлу
      */
     private void parseFile(File file, int fileIndex) {
@@ -80,7 +91,7 @@ public class Dictionary {
                 String[] words = line.split("\\s+");
 
                 for (String word : words) {
-                    if(!word.isEmpty()) {
+                    if (!word.isEmpty()) {
                         word = word.trim().toLowerCase(Locale.ROOT);
 
 
@@ -92,7 +103,15 @@ public class Dictionary {
                         this.allWords++;
 
 
-                        /**1. додаєм до перестановочного індексу**/
+                        /**2. додаєм до перестановочного індексу**/
+                        String permTermStr = word + "$";
+                        List<String> permutations = generatePermutations(permTermStr);
+
+                        for (String perm : permutations) {
+
+                            permutationIndex.computeIfAbsent(perm, k -> new HashSet<>()).add(fileIndex);
+                        }
+
 
                     }
                 }
@@ -102,11 +121,6 @@ public class Dictionary {
             e.printStackTrace();
         }
     }
-
-
-
-
-
 
 
     /**
@@ -154,6 +168,7 @@ public class Dictionary {
 
     /**
      * виводимо розмір файлу красиво
+     *
      * @param path шлях до файлу
      * @return стрінг з розміром файлу красиво
      */
@@ -169,6 +184,7 @@ public class Dictionary {
 
     /**
      * рахуєм кількість файлів у бібліотеці
+     *
      * @param directoryPath посилання на бібліотеку
      * @return кількість файлів
      */
@@ -183,6 +199,42 @@ public class Dictionary {
 
 
 
+
+    private List<String> generatePermutations(String term) {
+        List<String> permutations = new ArrayList<>();
+        for (int i = 0; i < term.length(); i++) {
+            String perm = term.substring(i) + term.substring(0, i);
+            permutations.add(perm);
+        }
+        permutations.add(term);
+        return permutations;
+    }
+
+
+    public void printInvertedIndexToFile(String fileName) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            int count = 0;
+            for (Map.Entry<String, Set<Integer>> entry : permutationIndex.entrySet()) {
+                writer.write(entry.getKey() + " [");
+                Set<Integer> indices = entry.getValue();
+                int size = indices.size();
+                int i = 0;
+                for (Integer index : indices) {
+                    writer.write(String.valueOf(index));
+                    if (++i < size) {
+                        writer.write(",");
+                    }
+                }
+                writer.write("]\n");
+                count++;
+                if (count == 100000) {
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing inverted index to file: " + e.getMessage());
+        }
+    }
 
 
 
